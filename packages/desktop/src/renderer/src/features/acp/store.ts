@@ -28,6 +28,8 @@ export type PendingPermission = {
 export type AcpSession = {
   sessionId: string;
   connectionId: string;
+  title?: string;
+  createdAt: string;
   messages: AcpMessage[];
   toolCalls: Map<string, ToolCallState>;
   streaming: boolean;
@@ -45,7 +47,7 @@ type AcpState = {
   setAgents: (agents: AgentInfo[]) => void;
   setActiveSession: (sessionId: string | null) => void;
   setAgentSessions: (sessions: SessionInfo[]) => void;
-  createSession: (sessionId: string, connectionId: string) => void;
+  createSession: (sessionId: string, connectionId: string, meta?: { title?: string; createdAt?: string }) => void;
   removeSession: (sessionId: string) => void;
   addUserMessage: (sessionId: string, content: string) => void;
   setStreaming: (sessionId: string, streaming: boolean) => void;
@@ -68,11 +70,13 @@ export const useAcpStore = create<AcpState>()(
 
     setAgentSessions: (agentSessions) => set({ agentSessions }),
 
-    createSession: (sessionId, connectionId) => {
+    createSession: (sessionId, connectionId, meta) => {
       set((state) => {
         state.sessions.set(sessionId, {
           sessionId,
           connectionId,
+          title: meta?.title,
+          createdAt: meta?.createdAt ?? new Date().toISOString(),
           messages: [],
           toolCalls: new Map(),
           streaming: false,
@@ -96,6 +100,9 @@ export const useAcpStore = create<AcpState>()(
       set((state) => {
         const session = state.sessions.get(sessionId);
         if (!session) return;
+        if (!session.title) {
+          session.title = content.slice(0, 50);
+        }
         state._nextMessageId += 1;
         session.messages.push({
           id: String(state._nextMessageId),
@@ -140,6 +147,9 @@ export const useAcpStore = create<AcpState>()(
         }
 
         if (event.type === "user_message") {
+          if (!session.title) {
+            session.title = event.text.slice(0, 50);
+          }
           state._nextMessageId += 1;
           session.messages.push({
             id: String(state._nextMessageId),

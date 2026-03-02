@@ -132,6 +132,7 @@ export const acpRouter = os.acp.router({
       title: r.title ?? r.name,
       cwd: r.cwd,
       updatedAt: r.lastUsedAt,
+      createdAt: r.createdAt,
     }));
 
     acpLog("listSessions: success", {
@@ -253,6 +254,7 @@ export const acpRouter = os.acp.router({
             sessionId: input.sessionId,
             eventType: event.type,
             eventCount,
+            event: JSON.stringify(event),
           });
         }
         yield event;
@@ -274,6 +276,9 @@ export const acpRouter = os.acp.router({
       input.sessionId,
     );
     if (record) {
+      if (!record.title) {
+        record.title = input.prompt.slice(0, 50);
+      }
       record.lastUsedAt = isoNow();
       record.lastPromptAt = record.lastUsedAt;
       writeSessionRecord(record).catch(() => {});

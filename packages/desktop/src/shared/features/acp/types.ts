@@ -22,6 +22,7 @@ export type SessionInfo = {
   title?: string;
   cwd: string;
   updatedAt: string;
+  createdAt: string;
 };
 
 /** Final return value when loadSession replay completes */

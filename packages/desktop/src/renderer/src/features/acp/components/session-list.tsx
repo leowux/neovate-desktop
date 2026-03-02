@@ -4,6 +4,19 @@ import { client } from "../../../orpc";
 import { cn } from "../../../lib/utils";
 import { Button } from "../../../components/ui/button";
 
+function timeAgo(iso: string): string {
+  const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  return `${months}mo ago`;
+}
+
 export function SessionList() {
   const sessions = useAcpStore((s) => s.sessions);
   const activeSessionId = useAcpStore((s) => s.activeSessionId);
@@ -44,7 +57,8 @@ export function SessionList() {
       setRestoring(sessionId);
       try {
         // Create the store session first so appendChunk has a target
-        createSession(sessionId, connectionId);
+        const info = agentSessions.find((s) => s.sessionId === sessionId);
+        createSession(sessionId, connectionId, info ? { title: info.title, createdAt: info.createdAt } : undefined);
         const iterator = await client.acp.loadSession({ connectionId, sessionId });
         for await (const event of iterator) {
           appendChunk(sessionId, event);
@@ -55,7 +69,7 @@ export function SessionList() {
         setRestoring(null);
       }
     },
-    [connectionId, sessions, setActiveSession, createSession, appendChunk],
+    [connectionId, sessions, setActiveSession, createSession, appendChunk, agentSessions],
   );
 
   // In-memory session IDs for dedup
@@ -103,10 +117,11 @@ export function SessionList() {
                   : "text-muted-foreground hover:bg-accent/50",
               )}
             >
-              <span className="block truncate font-mono">{session.sessionId.slice(0, 8)}</span>
+              <span className="block truncate font-mono">{session.title || session.sessionId.slice(0, 8)}</span>
               <span className="block truncate text-[10px] opacity-60">
                 {session.messages.length} message{session.messages.length !== 1 && "s"}
                 {session.streaming && " \u00b7 streaming"}
+                {" \u00b7 "}{timeAgo(session.createdAt)}
               </span>
             </button>
           </li>
@@ -131,7 +146,9 @@ export function SessionList() {
                   ? "Restoring..."
                   : info.title || info.sessionId.slice(0, 8)}
               </span>
-              <span className="block truncate text-[10px] opacity-60">{info.cwd}</span>
+              <span className="block truncate text-[10px] opacity-60">
+                {timeAgo(info.createdAt)}
+              </span>
             </button>
           </li>
         ))}
