@@ -1,3 +1,5 @@
+import os from "node:os";
+import path from "node:path";
 import Store from "electron-store";
 import type {
   Project,
@@ -10,6 +12,7 @@ export class ProjectStore {
   constructor() {
     this.store = new Store<ProjectStoreSchema>({
       name: "projects",
+      cwd: path.join(os.homedir(), ".neovate-desktop"),
       defaults: {
         projects: [],
         activeProjectId: null,
