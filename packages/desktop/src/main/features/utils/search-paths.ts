@@ -20,8 +20,9 @@ function ensureExecutable(filePath: string) {
 function resolveRgPath(): string {
   if (cachedRgPath) return cachedRgPath;
 
+  const sdkMain = require.resolve("@anthropic-ai/claude-agent-sdk");
   const sdkDir = join(
-    require.resolve("@anthropic-ai/claude-agent-sdk/package.json"),
+    sdkMain,
     "..",
     "vendor",
     "ripgrep",
