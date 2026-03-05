@@ -20,6 +20,7 @@ export type ChatMessage = {
   content: string;
   thinking?: string;
   toolCalls?: ToolCallState[];
+  images?: Array<{ mediaType: string; base64: string }>;
 };
 
 export type ToolCallState = {
@@ -87,7 +88,11 @@ type AgentState = {
     meta?: { title?: string; createdAt?: string; cwd?: string; isNew?: boolean },
   ) => void;
   removeSession: (sessionId: string) => void;
-  addUserMessage: (sessionId: string, content: string) => void;
+  addUserMessage: (
+    sessionId: string,
+    content: string,
+    images?: Array<{ mediaType: string; base64: string }>,
+  ) => void;
   setStreaming: (sessionId: string, streaming: boolean) => void;
   setPromptError: (sessionId: string, error: string | null) => void;
   setPendingPermission: (sessionId: string, perm: PendingPermission | null) => void;
@@ -175,8 +180,13 @@ export const useAgentStore = create<AgentState>()(
       });
     },
 
-    addUserMessage: (sessionId, content) => {
-      storeLog("addUserMessage: sid=%s len=%d", sessionId, content.length);
+    addUserMessage: (sessionId, content, images) => {
+      storeLog(
+        "addUserMessage: sid=%s len=%d images=%d",
+        sessionId,
+        content.length,
+        images?.length ?? 0,
+      );
       set((state) => {
         const session = state.sessions.get(sessionId);
         if (!session) {
@@ -192,6 +202,7 @@ export const useAgentStore = create<AgentState>()(
           id: String(state._nextMessageId),
           role: "user",
           content,
+          ...(images && images.length > 0 ? { images } : {}),
         });
         storeLog(
           "addUserMessage: msgCount=%d msgId=%d",
@@ -270,7 +281,12 @@ export const useAgentStore = create<AgentState>()(
         }
         session.messages = cached.messages.map((m) => {
           state._nextMessageId += 1;
-          return { ...m, id: String(state._nextMessageId), toolCalls: m.toolCalls };
+          return {
+            ...m,
+            id: String(state._nextMessageId),
+            toolCalls: m.toolCalls,
+            images: m.images,
+          };
         });
         if (cached.title) session.title = cached.title;
         if (cached.cwd) session.cwd = cached.cwd;
@@ -334,7 +350,12 @@ export const useAgentStore = create<AgentState>()(
             break;
 
           case "user_message":
-            storeLog("appendChunk: user_message sid=%s len=%d", sessionId, event.text.length);
+            storeLog(
+              "appendChunk: user_message sid=%s len=%d images=%d",
+              sessionId,
+              event.text.length,
+              event.images?.length ?? 0,
+            );
             if (!session.title) {
               session.title = event.text.slice(0, 50);
             }
@@ -343,6 +364,7 @@ export const useAgentStore = create<AgentState>()(
               id: String(state._nextMessageId),
               role: "user",
               content: event.text,
+              ...(event.images && event.images.length > 0 ? { images: event.images } : {}),
             });
             break;
 

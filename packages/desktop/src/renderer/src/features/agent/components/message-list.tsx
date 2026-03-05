@@ -33,7 +33,21 @@ export function MessageList({ messages, streaming }: Props) {
                 streaming={streaming && idx === messages.length - 1}
               />
             ) : (
-              msg.content
+              <>
+                {msg.content}
+                {msg.images && msg.images.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {msg.images.map((img, imgIdx) => (
+                      <img
+                        key={imgIdx}
+                        src={`data:${img.mediaType};base64,${img.base64}`}
+                        alt=""
+                        className="max-h-48 rounded-md object-cover"
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
             {msg.toolCalls && msg.toolCalls.length > 0 && (
               <ToolActionsGroup toolCalls={msg.toolCalls} />

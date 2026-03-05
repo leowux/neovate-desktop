@@ -29,7 +29,12 @@ export type StreamEvent =
       status: string;
       input?: unknown;
     }
-  | { type: "user_message"; sessionId: string; text: string }
+  | {
+      type: "user_message";
+      sessionId: string;
+      text: string;
+      images?: Array<{ mediaType: string; base64: string }>;
+    }
   | {
       type: "result";
       sessionId: string;
@@ -93,6 +98,7 @@ export type CachedMessage = {
   content: string;
   thinking?: string;
   toolCalls?: Array<{ toolCallId: string; name: string; status?: string; input?: unknown }>;
+  images?: Array<{ mediaType: string; base64: string }>;
 };
 
 /** Persisted session cache for instant resume */

@@ -72,7 +72,11 @@ export function usePrompt() {
 
       // Check if this was a new session before sending the first message
       const wasNew = useAgentStore.getState().sessions.get(resolvedSessionId)?.isNew;
-      addUserMessage(resolvedSessionId, prompt);
+      addUserMessage(
+        resolvedSessionId,
+        prompt,
+        attachments?.map((a) => ({ mediaType: a.mediaType, base64: a.base64 })),
+      );
       setStreaming(resolvedSessionId, true);
 
       // Pre-warm next empty session in background after first message
@@ -193,6 +197,7 @@ export function usePrompt() {
                 content: m.content,
                 thinking: m.thinking,
                 toolCalls: m.toolCalls,
+                images: m.images,
               })),
               title: session.title,
               cwd: session.cwd,

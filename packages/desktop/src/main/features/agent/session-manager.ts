@@ -495,6 +495,7 @@ export class SessionManager {
     if (msg.type === "user") {
       const content = message.content;
       let text = "";
+      let images: Array<{ mediaType: string; base64: string }> | undefined;
       if (typeof content === "string") {
         text = content;
       } else if (Array.isArray(content)) {
@@ -502,10 +503,22 @@ export class SessionManager {
           .filter((b: any) => b.type === "text")
           .map((b: any) => b.text)
           .join("");
+        const imageBlocks = content.filter((b: any) => b.type === "image");
+        if (imageBlocks.length > 0) {
+          images = imageBlocks.map((b: any) => ({
+            mediaType: b.source?.media_type ?? "image/png",
+            base64: b.source?.data ?? "",
+          }));
+        }
       }
-      if (text) {
-        log("convertReplay: user_message len=%d uuid=%s", text.length, msg.uuid);
-        yield { type: "user_message", sessionId, text };
+      if (text || images) {
+        log(
+          "convertReplay: user_message len=%d images=%d uuid=%s",
+          text.length,
+          images?.length ?? 0,
+          msg.uuid,
+        );
+        yield { type: "user_message", sessionId, text, ...(images ? { images } : {}) };
       }
     } else if (msg.type === "assistant") {
       const blocks = message.content;
@@ -613,6 +626,7 @@ export class SessionManager {
       case "user": {
         const content = msg.message.content;
         let text = "";
+        let images: Array<{ mediaType: string; base64: string }> | undefined;
         if (typeof content === "string") {
           text = content;
         } else if (Array.isArray(content)) {
@@ -620,16 +634,24 @@ export class SessionManager {
             .filter((b) => b.type === "text")
             .map((b) => (b as { text: string }).text)
             .join("");
+          const imageBlocks = content.filter((b) => b.type === "image");
+          if (imageBlocks.length > 0) {
+            images = imageBlocks.map((b: any) => ({
+              mediaType: b.source?.media_type ?? "image/png",
+              base64: b.source?.data ?? "",
+            }));
+          }
         }
         const isReplay = "isReplay" in msg && msg.isReplay;
         log(
-          "convert: user_message len=%d replay=%s uuid=%s",
+          "convert: user_message len=%d images=%d replay=%s uuid=%s",
           text.length,
+          images?.length ?? 0,
           isReplay,
           msg.uuid ?? "-",
         );
-        if (text) {
-          yield { type: "user_message", sessionId, text };
+        if (text || images) {
+          yield { type: "user_message", sessionId, text, ...(images ? { images } : {}) };
         }
         break;
       }
