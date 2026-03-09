@@ -151,7 +151,7 @@ export class RendererApp implements IRendererApp {
 
   async stop(): Promise<void> {
     await this.pluginManager.deactivate();
-    this.workbench.contentPanel.dispose();
+    this.workbench?.contentPanel.dispose();
     this.settings.dispose();
     this.subscriptions.dispose();
   }
