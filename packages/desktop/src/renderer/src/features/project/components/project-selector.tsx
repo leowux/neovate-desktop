@@ -17,14 +17,16 @@ export function ProjectSelector({ children, variant = "menu" }: ProjectSelectorP
   return (
     <Menu>
       {variant === "select" ? (
-        <MenuTrigger>
-          <button className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-accent/50">
-            <span className={activeProject ? "text-foreground" : "text-muted-foreground"}>
-              {activeProject?.name ?? "Select a project..."}
-            </span>
-            <ChevronsUpDownIcon className="size-4 shrink-0 opacity-50" />
-          </button>
-        </MenuTrigger>
+        <MenuTrigger
+          render={
+            <button className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-accent/50">
+              <span className={activeProject ? "text-foreground" : "text-muted-foreground"}>
+                {activeProject?.name ?? "Select a project..."}
+              </span>
+              <ChevronsUpDownIcon className="size-4 shrink-0 opacity-50" />
+            </button>
+          }
+        />
       ) : (
         <MenuTrigger render={children} />
       )}

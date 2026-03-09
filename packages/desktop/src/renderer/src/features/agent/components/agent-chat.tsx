@@ -40,14 +40,6 @@ export function AgentChat() {
   // Track the project path we last initialized for
   const initializedPathRef = useRef<string | null>(null);
 
-  chatLog(
-    "render: activeProject=%s activeSession=%s sessionCount=%d isNew=%s",
-    activeProjectPath || "none",
-    activeSessionId?.slice(0, 8) ?? "none",
-    sessions.size,
-    activeSession?.isNew ?? "-",
-  );
-
   // On project switch: list sessions and create a new empty session
   useEffect(() => {
     chatLog(
@@ -122,11 +114,6 @@ export function AgentChat() {
 
   // State 1: No session yet (or new empty session) — show welcome panel with input
   if (!activeSession || activeSession.isNew) {
-    chatLog(
-      "render: showing welcome panel (activeSession=%s isNew=%s)",
-      activeSession ? "yes" : "no",
-      activeSession?.isNew ?? "-",
-    );
     return (
       <div className="flex h-full flex-col">
         <WelcomePanel />
@@ -163,13 +150,6 @@ function AgentChatSession({
 }) {
   const { messages, status, error, pendingRequests, sendMessage, respondToRequest, stop } =
     useClaudeCodeChat(sessionId);
-
-  chatLog(
-    "render: showing chat msgs=%d status=%s pendingReqs=%d",
-    messages.length,
-    status,
-    pendingRequests.length,
-  );
 
   const handleSend = (text: string) => {
     chatLog("handleSend: sessionId=%s msgLen=%d", sessionId.slice(0, 8), text.length);

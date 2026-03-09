@@ -36,8 +36,6 @@ interface ExtensionRegistration {
 }
 
 async function extractVsix(vsixPath: string, targetDir: string): Promise<void> {
-  console.log("[extractVsix] 解压 VSIX:", path.basename(vsixPath));
-
   try {
     const zip = new AdmZip(vsixPath);
 
@@ -108,8 +106,6 @@ function readExtensionManifest(tempDir: string): ExtensionManifest {
     throw new Error(`扩展清单文件不存在。在以下位置查找失败: ${manifestPath}`);
   }
 
-  console.log("[readExtensionManifest] 找到清单文件:", manifestPath);
-
   try {
     const manifestContent = fs.readFileSync(manifestPath, "utf-8");
     const manifest = JSON.parse(manifestContent);
@@ -132,12 +128,6 @@ function readExtensionManifest(tempDir: string): ExtensionManifest {
       manifest.publisher = "undefined_publisher";
     }
 
-    console.log("[readExtensionManifest] 成功读取清单:", {
-      publisher: manifest.publisher,
-      name: manifest.name,
-      version: manifest.version,
-    });
-
     return manifest;
   } catch (error) {
     console.error("[readExtensionManifest] 读取或解析清单文件失败:", error);
@@ -147,20 +137,15 @@ function readExtensionManifest(tempDir: string): ExtensionManifest {
 
 export async function installExtension(): Promise<void> {
   const vsixPath = await ensureExtension();
-  console.log("[installExtension] 开始安装扩展，VSIX 路径:", vsixPath);
 
   if (!fs.existsSync(vsixPath)) {
-    console.error("[installExtension] VSIX 文件不存在:", vsixPath);
     throw new Error(`VSIX file not found: ${vsixPath}`);
   }
 
   const extensionPath = EXTENSIONS_DIR;
   const extensionJSON = path.join(extensionPath, "extensions.json");
-  console.log("[installExtension] 扩展目录:", extensionPath);
-  console.log("[installExtension] 扩展注册文件:", extensionJSON);
 
   if (!fs.existsSync(extensionPath)) {
-    console.log("[installExtension] 创建扩展目录");
     fs.mkdirSync(extensionPath, { recursive: true });
   }
 
@@ -168,17 +153,13 @@ export async function installExtension(): Promise<void> {
 
   if (fs.existsSync(extensionJSON)) {
     try {
-      console.log("[installExtension] 读取现有扩展注册文件");
       const content = fs.readFileSync(extensionJSON, "utf-8");
       const parsed = JSON.parse(content || "[]");
       extensions = Array.isArray(parsed) ? parsed : [];
-      console.log("[installExtension] 现有扩展数量:", extensions.length);
     } catch (error) {
-      console.error("[installExtension] 读取或解析 extensions.json 失败:", error);
+      console.error("[installExtension] failed to parse extensions.json:", error);
       extensions = [];
     }
-  } else {
-    console.log("[installExtension] 扩展注册文件不存在，将创建新文件");
   }
 
   const tempDir = path.join(
@@ -186,40 +167,23 @@ export async function installExtension(): Promise<void> {
     ".temp",
     `ext-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
   );
-  console.log("[installExtension] 创建临时目录:", tempDir);
   fs.mkdirSync(tempDir, { recursive: true });
 
   try {
-    console.log("[installExtension] 开始解压 VSIX 文件");
     await extractVsix(vsixPath, tempDir);
-    console.log("[installExtension] VSIX 解压完成");
-
-    console.log("[installExtension] 读取扩展清单");
     const manifest = readExtensionManifest(tempDir);
-    console.log("[installExtension] 扩展信息:", {
-      publisher: manifest.publisher,
-      name: manifest.name,
-      version: manifest.version,
-    });
 
     const extensionId = generateExtensionId(manifest.publisher, manifest.name);
     const extensionDirName = `${extensionId}-${manifest.version}`;
     const extensionDir = path.join(extensionPath, extensionDirName);
-    console.log("[installExtension] 扩展ID:", extensionId);
-    console.log("[installExtension] 扩展目录名:", extensionDirName);
-    console.log("[installExtension] 目标目录:", extensionDir);
 
     if (fs.existsSync(extensionDir)) {
-      console.log("[installExtension] 检测到已安装的扩展，删除旧版本");
       fs.rmSync(extensionDir, { recursive: true, force: true });
     }
 
-    console.log("[installExtension] 移动临时目录到最终位置");
     fs.renameSync(tempDir, extensionDir);
-    console.log("[installExtension] 目录移动完成");
 
     const relativeLocation = extensionDirName;
-    console.log("[installExtension] 相对位置:", relativeLocation);
 
     const extensionRegistration: ExtensionRegistration = {
       identifier: {
@@ -241,17 +205,14 @@ export async function installExtension(): Promise<void> {
       },
     };
 
-    console.log("[installExtension] 更新扩展注册列表");
     extensions = extensions.filter((ext) => ext.identifier.id !== extensionId);
     extensions.push(extensionRegistration);
 
-    console.log("[installExtension] 写入扩展注册文件");
     fs.writeFileSync(extensionJSON, JSON.stringify(extensions, null, 2));
-    console.log("[installExtension] 扩展安装成功!");
+    console.log(`[installExtension] installed ${extensionId}@${manifest.version}`);
   } catch (error) {
-    console.error("[installExtension] 安装扩展失败:", error);
+    console.error("[installExtension] failed:", error);
     if (fs.existsSync(tempDir)) {
-      console.log("[installExtension] 清理临时目录:", tempDir);
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
     throw error;

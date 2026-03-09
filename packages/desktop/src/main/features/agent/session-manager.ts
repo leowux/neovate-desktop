@@ -485,19 +485,6 @@ export class SessionManager {
       Math.round(performance.now() - t0),
     );
 
-    if (sessions.length > 0 && sessions.length <= 20) {
-      for (const s of sessions) {
-        log(
-          "listSessions:   id=%s title=%s cwd=%s lastModified=%s size=%d",
-          s.sessionId.slice(0, 8),
-          (s.customTitle ?? s.summary ?? s.firstPrompt ?? "").slice(0, 40),
-          s.cwd,
-          new Date(s.lastModified).toISOString(),
-          s.fileSize,
-        );
-      }
-    }
-
     const result: SessionInfo[] = sessions.map((s) => ({
       sessionId: s.sessionId,
       title: s.customTitle ?? s.summary ?? s.firstPrompt?.slice(0, 50),
