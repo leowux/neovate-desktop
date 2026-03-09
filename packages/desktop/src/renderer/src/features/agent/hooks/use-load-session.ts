@@ -5,7 +5,7 @@ import { useAgentStore } from "../store";
 
 const loadLog = debug("neovate:agent-load-session");
 
-export function useLoadSession(activeProjectPath: string | undefined) {
+export function useLoadSession(fallbackCwd?: string) {
   const setActiveSession = useAgentStore((s) => s.setActiveSession);
   const createSession = useAgentStore((s) => s.createSession);
   const removeSession = useAgentStore((s) => s.removeSession);
@@ -35,10 +35,11 @@ export function useLoadSession(activeProjectPath: string | undefined) {
       const ac = new AbortController();
       loadAbortRef.current = ac;
 
-      loadLog("START sid=%s cwd=%s", sessionId.slice(0, 8), activeProjectPath);
+      const info = agentSessions.find((s) => s.sessionId === sessionId);
+      const cwd = info?.cwd ?? fallbackCwd;
+      loadLog("START sid=%s cwd=%s", sessionId.slice(0, 8), cwd);
       const t0 = performance.now();
 
-      const info = agentSessions.find((s) => s.sessionId === sessionId);
       loadLog(
         "info=%o",
         info ? { title: info.title, cwd: info.cwd } : "not found in agentSessions",
@@ -49,10 +50,7 @@ export function useLoadSession(activeProjectPath: string | undefined) {
       );
 
       try {
-        const iterator = await client.agent.loadSession(
-          { sessionId, cwd: activeProjectPath },
-          { signal: ac.signal },
-        );
+        const iterator = await client.agent.loadSession({ sessionId, cwd }, { signal: ac.signal });
         let eventCount = 0;
         for await (const event of iterator) {
           eventCount++;
@@ -82,7 +80,7 @@ export function useLoadSession(activeProjectPath: string | undefined) {
         }
       }
     },
-    [setActiveSession, createSession, removeSession, appendChunk, setSdkReady, activeProjectPath],
+    [setActiveSession, createSession, removeSession, appendChunk, setSdkReady, fallbackCwd],
   );
 
   return loadSession;

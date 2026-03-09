@@ -2,8 +2,6 @@ import debug from "debug";
 import { MoreHorizontal } from "lucide-react";
 import type { ReactElement, ReactNode } from "react";
 import { useAgentStore } from "../store";
-
-const log = debug("neovate:session-actions-menu");
 import { useProjectStore } from "../../project/store";
 import { Button } from "../../../components/ui/button";
 import { Menu, MenuItem, MenuPopup, MenuSeparator, MenuTrigger } from "../../../components/ui/menu";
@@ -14,6 +12,8 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "../../../components/ui/context-menu";
+
+const log = debug("neovate:session-actions-menu");
 
 interface SessionActionsMenuProps {
   sessionId: string;
