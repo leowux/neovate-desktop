@@ -14,6 +14,7 @@ import { useProjectStore } from "../features/project/store";
 import { SettingsService } from "../features/settings/service";
 import { useSettingsStore } from "../features/settings/store";
 import { client } from "../orpc";
+import debugPlugin from "../plugins/debug";
 import editorPlugin from "../plugins/editor";
 import filesPlugin from "../plugins/files";
 import gitPlugin from "../plugins/git";
@@ -90,6 +91,7 @@ const BUILTIN_PLUGINS: RendererPlugin[] = [
   terminalPlugin,
   searchPlugin,
   editorPlugin,
+  debugPlugin,
   // TODO: Remove in the future
   // contentPanelDemoPlugin
   // demoWindowPlugin,
