@@ -67,4 +67,4 @@ Main
 
 ## License
 
-Private
+[MIT](./LICENSE)
