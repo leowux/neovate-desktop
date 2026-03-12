@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
-import { matchesBinding } from "../../../lib/keybindings";
+import { matchesBinding, DEFAULT_KEYBINDINGS } from "../../../lib/keybindings";
 import { useConfigStore } from "../../config/store";
 import { useSettingsStore } from "../store";
 import { AboutPanel } from "./panels/about-panel";
@@ -20,7 +20,11 @@ export const SettingsPage = () => {
   const setShowSettings = useSettingsStore((state) => state.setShowSettings);
 
   // Persistent config from useConfigStore
-  const keybindings = useConfigStore((state) => state.keybindings);
+  const rawKeybindings = useConfigStore((state) => state.keybindings);
+  const keybindings = useMemo(
+    () => ({ ...DEFAULT_KEYBINDINGS, ...rawKeybindings }),
+    [rawKeybindings],
+  );
 
   // Cmd+Esc to close settings and go back to app
   useEffect(() => {
