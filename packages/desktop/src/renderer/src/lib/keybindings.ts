@@ -73,6 +73,7 @@ export function formatKeyForDisplay(binding: string): string[] {
  * Supports cross-platform: Cmd matches metaKey on Mac, ctrlKey on Windows/Linux.
  */
 export function matchesBinding(e: KeyboardEvent, binding: string): boolean {
+  if (!binding) return false;
   const parts = binding.split("+");
 
   const wantCmd = parts.includes("Cmd");
