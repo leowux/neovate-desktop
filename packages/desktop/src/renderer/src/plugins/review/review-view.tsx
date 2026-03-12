@@ -1,11 +1,13 @@
 import { MultiFileDiff } from "@pierre/diffs/react";
 import {
+  Bot,
   ChevronDown,
   ChevronRight,
+  Columns2,
   Ellipsis,
+  FileCheck,
   GitBranch,
   RefreshCw,
-  Columns2,
   AlignJustify,
 } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -183,14 +185,16 @@ export default memo(function ReviewView() {
   const renderError = () => {
     if (category === "last-turn" && error === "no_session") {
       return (
-        <div className="h-full flex items-center justify-center">
+        <div className="h-full flex flex-col items-center justify-center gap-2">
+          <Bot className="w-10 h-10 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">{t("review.noSession")}</p>
         </div>
       );
     }
     if (category === "last-turn" && error?.includes("No turns")) {
       return (
-        <div className="h-full flex items-center justify-center">
+        <div className="h-full flex flex-col items-center justify-center gap-2">
+          <Bot className="w-10 h-10 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">{t("review.noTurns")}</p>
         </div>
       );
@@ -402,8 +406,22 @@ export default memo(function ReviewView() {
           ) : error ? (
             renderError()
           ) : files.length === 0 ? (
-            <div className="h-full flex items-center justify-center">
-              <p className="text-sm text-muted-foreground">{t("review.noChanges")}</p>
+            <div className="h-full flex flex-col items-center justify-center gap-2">
+              {category === "last-turn" ? (
+                <Bot className="w-10 h-10 text-muted-foreground" />
+              ) : category === "branch" ? (
+                <GitBranch className="w-10 h-10 text-muted-foreground" />
+              ) : (
+                <FileCheck className="w-10 h-10 text-muted-foreground" />
+              )}
+              <p className="text-sm font-medium text-muted-foreground">
+                {t(`review.empty.${category}.title`)}
+              </p>
+              <p className="text-xs text-muted-foreground/70">
+                {category === "branch" && branchInfo
+                  ? t("review.branchUpToDate", { tracking: branchInfo.tracking })
+                  : t(`review.empty.${category}.description`)}
+              </p>
             </div>
           ) : (
             files.map(renderFileDiff)
