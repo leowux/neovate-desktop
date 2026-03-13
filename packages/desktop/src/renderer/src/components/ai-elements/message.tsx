@@ -55,7 +55,7 @@ export const MessageActions = ({ className, children, ...props }: MessageActions
   <div
     className={cn(
       "flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity",
-      className
+      className,
     )}
     {...props}
   >
