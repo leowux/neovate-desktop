@@ -7,15 +7,30 @@ const TerminalIcon = ({ className }: { className?: string }) => (
   <HugeiconsIcon icon={ComputerTerminal01Icon} className={className} size={16} strokeWidth={1.5} />
 );
 
+const NAME = "plugin-terminal";
+
 const plugin: RendererPlugin = {
-  name: "builtin:terminal",
+  name: NAME,
+
+  configI18n() {
+    return {
+      namespace: NAME,
+      loader: async (locale) => {
+        try {
+          return (await import(`./locales/${locale}.json`)).default;
+        } catch {
+          return (await import("./locales/en-US.json")).default;
+        }
+      },
+    };
+  },
 
   configContributions() {
     return {
       contentPanelViews: [
         {
           viewType: "terminal",
-          name: "Terminal",
+          name: { "en-US": "Terminal", "zh-CN": "终端" },
           singleton: false,
           deactivation: "offscreen",
           icon: TerminalIcon,

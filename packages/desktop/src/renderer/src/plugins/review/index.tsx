@@ -11,12 +11,14 @@ const ReviewIcon = ({ className }: { className?: string }) => (
 
 let cleanupListener: (() => void) | null = null;
 
+const NAME = "plugin-review";
+
 const plugin: RendererPlugin = {
-  name: "plugin-review",
+  name: NAME,
 
   configI18n() {
     return {
-      namespace: "plugin-review",
+      namespace: NAME,
       loader: async (locale) => {
         try {
           return (await import(`./locales/${locale}.json`)).default;
@@ -32,7 +34,7 @@ const plugin: RendererPlugin = {
       contentPanelViews: [
         {
           viewType: "review",
-          name: "Review",
+          name: { "en-US": "Review", "zh-CN": "评审" },
           singleton: true,
           deactivation: "offscreen",
           icon: ReviewIcon,
