@@ -1,5 +1,4 @@
 import debug from "debug";
-import { SquarePen } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -7,14 +6,13 @@ import type { SessionInfo } from "../../../../../shared/features/agent/types";
 import type { UnifiedItem } from "../hooks/use-unified-sessions";
 import type { ChatSession } from "../store";
 
-import { Button } from "../../../components/ui/button";
 import { useConfigStore } from "../../config/store";
 import { useProjectStore } from "../../project/store";
 import { useLoadSession } from "../hooks/use-load-session";
-import { useNewSession } from "../hooks/use-new-session";
 import { useAgentStore } from "../store";
 import { ChronologicalList } from "./chronological-list";
 import { EmptySessionState } from "./empty-session-state";
+import { NewChatButton } from "./new-chat-button";
 import { PinnedSessionList } from "./pinned-session-list";
 import { ProjectAccordionList } from "./project-accordion-list";
 import { SidebarTitleBar } from "./sidebar-title-bar";
@@ -41,9 +39,7 @@ function MultiProjectSessionList() {
   const sidebarOrganize = useConfigStore((s) => s.sidebarOrganize);
   const loadSessionPreferences = useProjectStore((s) => s.loadSessionPreferences);
   const projects = useProjectStore((s) => s.projects);
-  const { createNewSession } = useNewSession();
   const activeProject = useProjectStore((s) => s.activeProject);
-  const { t } = useTranslation();
   log("multi-project: organize=%s projects=%d", sidebarOrganize, projects.length);
 
   useEffect(() => {
@@ -57,15 +53,7 @@ function MultiProjectSessionList() {
     <div className="flex flex-1 flex-col">
       <PinnedSessionList />
       <div className="px-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="mb-2 !h-8 w-full bg-secondary text-secondary-foreground hover:!bg-secondary/80"
-          onClick={() => activeProject && createNewSession(activeProject.path)}
-        >
-          <SquarePen size={14} />
-          <span>{t("session.newChat")}</span>
-        </Button>
+        <NewChatButton projectPath={activeProject?.path} />
       </div>
       <SidebarTitleBar />
       {sidebarOrganize === "chronological" ? <ChronologicalList /> : <ProjectAccordionList />}
@@ -87,7 +75,6 @@ const SingleProjectSessionList = memo(function SingleProjectSessionList() {
   const pinnedSessions = useProjectStore((s) => s.pinnedSessions);
   const loadSessionPreferences = useProjectStore((s) => s.loadSessionPreferences);
 
-  const { createNewSession } = useNewSession();
   const [restoring, setRestoring] = useState<string | null>(null);
 
   const projectPath = activeProject?.path;
@@ -176,15 +163,7 @@ const SingleProjectSessionList = memo(function SingleProjectSessionList() {
 
   return (
     <div className="flex flex-1 flex-col gap-1">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="mb-2 w-full bg-secondary text-secondary-foreground hover:!bg-secondary/80"
-        onClick={() => createNewSession(projectPath)}
-      >
-        <SquarePen size={14} />
-        <span>{t("session.newChat")}</span>
-      </Button>
+      <NewChatButton projectPath={projectPath} />
       {pinnedItems.length === 0 && regularItems.length === 0 ? (
         <EmptySessionState />
       ) : (
