@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { isReasoningUIPart, isToolUIPart, type ToolUIPart } from "ai";
 import { CheckIcon, CopyIcon, ChevronDownIcon } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { useTranslation } from "react-i18next";
 
 import type {
@@ -184,9 +185,9 @@ export const MessagePartRenderer = memo(
               return null;
             }
             return (
-              <div key={part.toolCallId} data-key={part.toolCallId}>
-                {renderToolPart(message, part)}
-              </div>
+              <ErrorBoundary key={part.toolCallId} fallback={<ToolPartErrorFallback />}>
+                <div data-key={part.toolCallId}>{renderToolPart(message, part)}</div>
+              </ErrorBoundary>
             );
           }
 
@@ -256,3 +257,11 @@ export const MessagePartRenderer = memo(
 );
 
 MessagePartRenderer.displayName = "MessagePartRenderer";
+
+function ToolPartErrorFallback() {
+  return (
+    <div className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+      Failed to render tool output
+    </div>
+  );
+}
