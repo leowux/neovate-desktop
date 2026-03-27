@@ -185,7 +185,17 @@ function FilesViewComponent({ project }: FilesViewProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Skip if user is typing in an input field
       const target = e.target as HTMLElement;
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+      const tagName = target.tagName;
+      // Check for standard input elements
+      if (tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT") {
+        return;
+      }
+      // Check for contentEditable elements
+      if (target.isContentEditable || target.closest("[contenteditable='true']")) {
+        return;
+      }
+      // Check if focus is inside a dialog, modal, or popover
+      if (target.closest("[role='dialog'], [role='alertdialog'], [data-state='open']")) {
         return;
       }
 
@@ -380,7 +390,6 @@ function FilesViewComponent({ project }: FilesViewProps) {
         return;
       }
     }
-
     // Clear pending path since we're revealing now
     pendingRevealPathRef.current = null;
 
@@ -408,8 +417,9 @@ function FilesViewComponent({ project }: FilesViewProps) {
     }
 
     // Always load data for all parent directories to ensure they have children
+    // Include both current expanded keys and parent dirs to preserve user's expanded state
     log("revealFile loading data for all parent dirs");
-    await restoreExpandedDirectories(new Set(allParentDirs));
+    await restoreExpandedDirectories(new Set([...expandedKeys.keys, ...allParentDirs]));
 
     // Select the file
     selectedKeys.only(fullPath);
