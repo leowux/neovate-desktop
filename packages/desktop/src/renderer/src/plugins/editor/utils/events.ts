@@ -36,6 +36,7 @@ export function handleEditorEvents(
           detail: { tabs },
         }),
       );
+      return;
     default:
       return;
   }
