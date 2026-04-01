@@ -52,6 +52,9 @@ if (projectStore.checkCrashLoop()) {
   projectStore.clearCrashCounter();
 }
 
+// Ensure the playground project + directory exist (idempotent)
+projectStore.ensurePlayground();
+
 process.on("uncaughtException", (error) => {
   log("uncaughtException: %O", error);
   projectStore.recordCrash();

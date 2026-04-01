@@ -124,6 +124,7 @@ export function matchesBinding(e: KeyboardEvent, binding: string): boolean {
 export type KeybindingAction =
   | "openSettings"
   | "newChat"
+  | "quickChat"
   | "closeSettings"
   | "toggleTheme"
   | "clearTerminal"
@@ -156,6 +157,7 @@ export const READONLY_ACTIONS: KeybindingAction[] = [
 export const KEYBINDING_LABEL_KEYS = {
   openSettings: "settings.keybindings.openSettings",
   newChat: "settings.keybindings.newChat",
+  quickChat: "settings.keybindings.quickChat",
   closeSettings: "settings.keybindings.closeSettings",
   toggleTheme: "settings.keybindings.toggleTheme",
   clearTerminal: "settings.keybindings.clearTerminal",
@@ -178,6 +180,7 @@ export const KEYBINDING_LABEL_KEYS = {
 export const KEYBINDING_LABELS: Record<KeybindingAction, string> = {
   openSettings: "Open Settings",
   newChat: "New Chat",
+  quickChat: "Quick Chat",
   closeSettings: "Close Settings",
   toggleTheme: "Toggle Theme",
   clearTerminal: "Clear Terminal",
@@ -200,6 +203,7 @@ export const KEYBINDING_LABELS: Record<KeybindingAction, string> = {
 export const DEFAULT_KEYBINDINGS: Record<KeybindingAction, string> = {
   openSettings: "Cmd+,",
   newChat: "Cmd+N",
+  quickChat: "Cmd+Shift+N",
   closeSettings: "Cmd+Esc",
   toggleTheme: "Cmd+Option+T",
   clearTerminal: "Cmd+Shift+K",
