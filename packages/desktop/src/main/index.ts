@@ -79,6 +79,7 @@ const sessionManager = new SessionManager(
 const stateStore = new StateStore();
 const llmService = new LlmService(configStore, shellEnvService);
 const mainApp = new MainApp({
+  appName: app.getName(),
   plugins: [gitPlugin, filesPlugin, terminalPlugin, editorPlugin, changesPlugin],
   llmService,
 });
