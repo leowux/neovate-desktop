@@ -1,11 +1,10 @@
 import debug from "debug";
-import { ExternalLink, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { Plus, RefreshCw, Store, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { Marketplace } from "../../../../../shared/features/claude-code-plugins/types";
 
-import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
 import { Spinner } from "../../../components/ui/spinner";
 import { client } from "../../../orpc";
@@ -74,41 +73,39 @@ export const SourcesTab = ({ marketplaces, onBrowse, onRefresh }: SourcesTabProp
       </div>
 
       {marketplaces.length === 0 ? (
-        <div className="rounded-xl bg-muted/30 border border-border/50 py-8">
-          <p className="text-sm text-muted-foreground text-center">
+        <div className="rounded-lg bg-muted/20 py-12 px-6 text-center">
+          <div className="flex items-center justify-center size-12 rounded-xl bg-primary/10 mx-auto mb-4">
+            <Store className="size-6 text-primary" />
+          </div>
+          <h3 className="text-sm font-medium text-foreground mb-2">No sources configured</h3>
+          <p className="text-xs text-muted-foreground mb-4 max-w-sm mx-auto">
             {t("settings.plugins.noSourcesConfigured")}
           </p>
+          <Button variant="default" size="sm" onClick={() => setShowAddModal(true)}>
+            <Plus className="size-3.5" />
+            Add Source
+          </Button>
         </div>
       ) : (
         <div className="space-y-2">
           {marketplaces.map((mp) => (
             <div
               key={mp.name}
-              className="flex items-center justify-between p-4 rounded-xl bg-background border border-border/50"
+              className="group flex items-center justify-between p-4 rounded-xl bg-card/80 border border-border/40 hover:bg-card hover:border-border/60 transition-colors duration-200 cursor-pointer"
+              onClick={() => onBrowse(mp.name)}
             >
               <div className="min-w-0 flex-1">
                 <h3 className="text-sm font-medium text-foreground truncate">{mp.name}</h3>
-                {mp.description && (
-                  <p className="text-xs text-muted-foreground truncate mt-0.5">{mp.description}</p>
-                )}
-                <div className="flex items-center gap-2 mt-1.5">
-                  <Badge variant="outline" size="sm">
-                    {mp.source.source}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {t("settings.plugins.pluginsCount", { count: mp.pluginCount })}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {t("settings.plugins.updated", { time: formatDate(mp.lastUpdated) })}
-                  </span>
-                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {mp.source.source} · {mp.pluginCount} plugin{mp.pluginCount !== 1 ? "s" : ""} ·{" "}
+                  {formatDate(mp.lastUpdated)}
+                </p>
               </div>
 
-              <div className="flex items-center gap-1 ml-3 shrink-0">
-                <Button variant="outline" size="sm" onClick={() => onBrowse(mp.name)}>
-                  <ExternalLink className="size-3.5" />
-                  {t("settings.plugins.browse")}
-                </Button>
+              <div
+                className="flex items-center gap-1 ml-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <Button
                   variant="ghost"
                   size="icon-sm"
@@ -135,9 +132,8 @@ export const SourcesTab = ({ marketplaces, onBrowse, onRefresh }: SourcesTabProp
                       {removingId === mp.name ? (
                         <Spinner className="size-3.5" />
                       ) : (
-                        <Trash2 className="size-3.5" />
+                        t("settings.plugins.remove")
                       )}
-                      {t("settings.plugins.remove")}
                     </Button>
                   </div>
                 ) : (
@@ -145,7 +141,7 @@ export const SourcesTab = ({ marketplaces, onBrowse, onRefresh }: SourcesTabProp
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => setConfirmRemove(mp.name)}
-                    className="text-destructive"
+                    className="text-destructive hover:text-destructive"
                   >
                     <Trash2 className="size-3.5" />
                   </Button>

@@ -1,5 +1,5 @@
 import debug from "debug";
-import { Download, Plus, RefreshCw, Search, Settings2, Wand2 } from "lucide-react";
+import { CheckCircle, Download, Plus, RefreshCw, Search, Settings2, Wand2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -207,13 +207,13 @@ export const SkillsPanel = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList variant="underline" className="mb-5">
+        <TabsList variant="pill" className="mb-5">
           <TabsTrigger value="discover">
             <Download className="size-3.5 mr-1.5" />
             {t("settings.skills.discover")}
           </TabsTrigger>
           <TabsTrigger value="installed">
-            <Wand2 className="size-3.5 mr-1.5" />
+            <CheckCircle className="size-3.5 mr-1.5" />
             {t("settings.skills.installedTab")}
             {installed.length > 0 && (
               <Badge variant="secondary" size="sm" className="ml-1.5">
