@@ -5,7 +5,6 @@ import { z } from "zod";
 
 import type {
   ClaudeCodeUIMessage,
-  ClaudeCodeUIMessageChunk,
   ClaudeCodeUIEvent,
   ClaudeCodeUIDispatch,
   ClaudeCodeUIDispatchResult,
@@ -52,9 +51,9 @@ export const agentContract = {
         >(),
       ),
 
-    stream: oc
+    send: oc
       .input(type<{ sessionId: string; message: ClaudeCodeUIMessage }>())
-      .output(eventIterator(type<ClaudeCodeUIMessageChunk>())),
+      .output(type<void>()),
 
     subscribe: oc
       .input(type<{ sessionId: string }>())
