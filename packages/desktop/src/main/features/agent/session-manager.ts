@@ -35,7 +35,7 @@ import type {
 } from "../../../shared/features/agent/types";
 import type { Contributions } from "../../core/plugin/contributions";
 
-import { mergeAgentHooks } from "../../core/plugin/contributions";
+import { mergeAgentHooks, mergeMcpServers } from "../../core/plugin/contributions";
 
 const execFileAsync = promisify(execFile);
 import type { Provider } from "../../../shared/features/provider/types";
@@ -141,6 +141,7 @@ export class SessionManager {
     private requestTracker: RequestTracker,
     private powerBlocker: PowerBlockerService,
     private getAgentContributions: () => Contributions["agents"] = () => [],
+    private getMcpServerContributions: () => Contributions["mcpServers"] = () => [],
   ) {}
 
   onLifecycle(listener: (event: SessionLifecycleEvent) => void): () => void {
@@ -568,6 +569,9 @@ export class SessionManager {
     });
     // Merge plugin-contributed hooks with built-in hooks (RTK)
     const mergedHooks = mergeAgentHooks(this.getAgentContributions());
+    // Merge plugin-contributed MCP servers
+    const mergedMcpServers = mergeMcpServers(this.getMcpServerContributions());
+    log("initSession: mcpServers=%o", Object.keys(mergedMcpServers));
     if (registerRtkHook) {
       (mergedHooks.PreToolUse ??= []).push({ matcher: "Bash", hooks: [rtkHook] });
     }
@@ -653,6 +657,7 @@ export class SessionManager {
         ...(agentLanguage !== "English" ? { language: agentLanguage.toLowerCase() } : {}),
       },
       hooks: mergedHooks,
+      ...(Object.keys(mergedMcpServers).length > 0 ? { mcpServers: mergedMcpServers } : {}),
       ...(opts?.resume ? { resume: opts.resume, sessionId: undefined } : {}),
       ...(spawnOverride ? { spawnClaudeCodeProcess: spawnOverride } : {}),
     };
