@@ -69,6 +69,50 @@ Run `bun ready` — it runs format check + typecheck + lint + tests. This is the
 - Zod 4 (not zod 3)
 - Icons: `lucide-react` (general use), `@hugeicons/core-free-icons` (sidebar/plugin icons)
 
+## Browser Automation Plugin
+
+Allows the AI Agent to control the built-in browser via MCP tools.
+
+**Architecture** — three layers communicating across Electron process boundaries:
+
+```
+┌─────────────────────────────────────┐
+│         AI Agent (main)             │  ← 发起工具调用
+│         MCP 工具层                   │
+└──────────────┬──────────────────────┘
+               │
+               │ ① 命令下发  nv:browser-cmd ──────┐
+               │                                  ▼
+┌──────────────┴──────────────────────┐   ┌───────────────┐
+│         IPC Bridge (main)           │   │    Preload    │  ← 安全隔离层
+│         挂起请求 / 超时保护            │   │   上下文桥接   │
+└──────────────┬──────────────────────┘   └───────┬───────┘
+               ▲                                  │
+               │ ② 结果回传  nv:browser-result ◀──┘
+               │
+┌──────────────┴──────────────────────┐
+│         Renderer 调度层              │  ← 命令路由 + 生命周期管理
+│         BrowserAutomationService    │
+└──────────────┬──────────────────────┘
+               │ Electron webview API
+┌──────────────▼──────────────────────┐
+│         浏览器视图层（React）          │  ← 实际页面渲染与事件上报
+└─────────────────────────────────────┘
+```
+
+**Key files:**
+
+- `src/main/plugins/browser-automation/mcp-server.ts` — 12 MCP tools (`browser_state`, `browser_navigate`, `browser_search`, `browser_click`, `browser_input`, `browser_scroll`, `browser_screenshot`, `browser_go_back`, `browser_wait`, `browser_evaluate`, `browser_send_keys`, `browser_console_logs`)
+- `src/main/plugins/browser-automation/browser-ipc-bridge.ts` — requestId-based request/response over two one-way IPC channels
+- `src/renderer/src/features/browser-automation/service.ts` — singleton dispatcher; manages webview lifecycle and dom-ready gating
+- `src/renderer/src/plugins/browser/browser-view.tsx` — React component; `src` is static (set once on mount), all navigation via imperative `loadURL()`
+
+**Critical constraints:**
+
+- MCP server instance must be created fresh per session (`createFreshBrowserMcpServer()`) — instances are closed after each session and cannot be reused
+- Never bind webview `src` to React state — React reconciliation will overwrite it and trigger unintended navigation; use `loadURL()` instead
+- All tool dispatch goes through `ensureWebview()`, which waits for `dom-ready` before proceeding — Electron throws if `executeJavaScript` or `loadURL` is called before dom-ready
+
 ## Design Context
 
 ### Users
