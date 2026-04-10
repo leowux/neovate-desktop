@@ -3,6 +3,8 @@ import { Globe } from "lucide-react";
 import type { RendererPlugin } from "../../core/plugin";
 import type { PluginContext } from "../../core/plugin/types";
 
+import { BrowserAutomationService } from "../../features/browser-automation/service";
+
 const NAME = "plugin-browser";
 
 /** Localhost variants opened in built-in browser by default (matches VS Code simple-browser) */
@@ -58,6 +60,12 @@ export default function browserPlugin(options?: BrowserPluginOptions): RendererP
           },
         ],
       };
+    },
+
+    activate(ctx: PluginContext) {
+      // Initialize the browser automation IPC bridge (workbench is available here)
+      BrowserAutomationService.getInstance().init();
+      BrowserAutomationService.getInstance().setContentPanel(ctx.app.workbench.contentPanel);
     },
 
     configContributions(ctx: PluginContext) {

@@ -13,7 +13,12 @@ interface WebviewElement extends HTMLElement {
   goForward(): void;
   reload(): void;
   openDevTools(): void;
+  loadURL(url: string): Promise<void>;
   executeJavaScript(code: string, userGesture?: boolean): Promise<unknown>;
+  capturePage(rect?: { x: number; y: number; width: number; height: number }): Promise<{
+    toDataURL(type?: string): string;
+    toPNG(): Uint8Array;
+  }>;
 }
 
 declare namespace JSX {

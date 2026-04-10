@@ -34,10 +34,26 @@ const api = {
   },
 };
 
+// IPC bridge for browser automation: main → renderer commands and renderer → main results
+const browserIpc = {
+  onBrowserCommand: (
+    callback: (cmd: { requestId: string; method: string; args: unknown }) => void,
+  ): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, cmd: unknown) =>
+      callback(cmd as { requestId: string; method: string; args: unknown });
+    ipcRenderer.on("nv:browser-cmd", handler);
+    return () => ipcRenderer.removeListener("nv:browser-cmd", handler);
+  },
+  sendBrowserResult: (requestId: string, result: unknown, error?: string): void => {
+    ipcRenderer.send("nv:browser-result", { requestId, result, error });
+  },
+};
+
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld("electron", electronAPI);
     contextBridge.exposeInMainWorld("api", api);
+    contextBridge.exposeInMainWorld("browserIpc", browserIpc);
   } catch (error) {
     console.error(error);
   }
@@ -46,4 +62,6 @@ if (process.contextIsolated) {
   window.electron = electronAPI;
   // @ts-ignore (define in dts)
   window.api = api;
+  // @ts-ignore (define in dts)
+  window.browserIpc = browserIpc;
 }
