@@ -1,3 +1,4 @@
+import type { McpServerConfig } from "@anthropic-ai/claude-agent-sdk";
 import type { AnyRouter } from "@orpc/server";
 
 import { os } from "@orpc/server";
@@ -32,6 +33,7 @@ export interface PluginContributions {
   router?: AnyRouter;
   agents?: AgentContributions;
   deeplinkHandler?: DeeplinkHandler;
+  mcpServers?: Record<string, McpServerConfig>;
 }
 
 export interface MainPluginHooks {

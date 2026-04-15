@@ -1,3 +1,4 @@
+import type { McpServerConfig } from "@anthropic-ai/claude-agent-sdk";
 import type { AnyRouter } from "@orpc/server";
 
 import debug from "debug";
@@ -15,7 +16,7 @@ type HookFn = (...args: unknown[]) => unknown;
 
 export class PluginManager {
   readonly #plugins: MainPlugin[];
-  contributions: Contributions = { routers: [], agents: [], deeplinkHandlers: [] };
+  contributions: Contributions = { routers: [], agents: [], deeplinkHandlers: [], mcpServers: [] };
 
   constructor(rawPlugins: MainPlugin[] = []) {
     const names = new Set<string>();
@@ -40,12 +41,14 @@ export class PluginManager {
     const routers: Contribution<AnyRouter>[] = [];
     const agents: Contribution<AgentContributions>[] = [];
     const deeplinkHandlers: Contribution<DeeplinkHandler>[] = [];
+    const mcpServers: Contribution<Record<string, McpServerConfig>>[] = [];
     for (const { plugin, raw } of entries) {
       if (raw.router) routers.push(contribution(plugin, raw.router));
       if (raw.agents) agents.push(contribution(plugin, raw.agents));
       if (raw.deeplinkHandler) deeplinkHandlers.push(contribution(plugin, raw.deeplinkHandler));
+      if (raw.mcpServers) mcpServers.push(contribution(plugin, raw.mcpServers));
     }
-    this.contributions = { routers, agents, deeplinkHandlers };
+    this.contributions = { routers, agents, deeplinkHandlers, mcpServers };
   }
 
   async activate(ctx: PluginContext): Promise<void> {
