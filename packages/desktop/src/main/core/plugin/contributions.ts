@@ -25,6 +25,7 @@ export type Contributions = {
   routers: Contribution<AnyRouter>[];
   agents: Contribution<AgentContributions>[];
   deeplinkHandlers: Contribution<DeeplinkHandler>[];
+  mcpServers: Contribution<Record<string, McpServerConfig>>[];
 };
 
 type MergedAgentOptions = Required<Pick<Options, "hooks" | "mcpServers">>;

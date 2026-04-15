@@ -567,8 +567,12 @@ export class SessionManager {
       cwd,
       model: opts?.model,
     });
-    // Merge plugin-contributed hooks and MCP servers
+    // Merge plugin-contributed hooks and MCP servers from agents
     const merged = mergeAgentContributions(this.getAgentContributions());
+    // Also merge standalone mcpServers contributions (e.g. browser-automation)
+    for (const { value } of this.getMcpServerContributions()) {
+      Object.assign(merged.mcpServers, value);
+    }
     log(
       "initSession: merged contributions sessionId=%s mcpServers=%o hookEvents=%o",
       sessionId,
