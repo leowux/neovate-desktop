@@ -13,8 +13,23 @@ type BrowserClient = ContractRouterClient<{ browser: typeof browserContract }>;
 
 const log = debug("neovate:browser-view");
 
+// Module-level constant — injected on every dom-ready to redirect
+// target=_blank links and window.open() to navigate in-place.
+const INJECT_NEW_WINDOW_HANDLER = `
+  (function() {
+    document.addEventListener('click', function(e) {
+      var a = e.target && e.target.closest && e.target.closest('a[target="_blank"]');
+      if (a && a.href) { e.preventDefault(); window.location.href = a.href; }
+    }, true);
+    window.open = function(url) {
+      if (url && url !== 'about:blank') { window.location.href = String(url); }
+      return null;
+    };
+  })();
+`;
+
 export default function BrowserView() {
-  const { viewId, viewState } = useContentPanelViewContext();
+  const { viewId, viewState, isActive } = useContentPanelViewContext();
   const app = useRendererApp();
   const contentPanel = app.workbench.contentPanel;
 
@@ -52,6 +67,14 @@ export default function BrowserView() {
 
     const onDomReady = () => {
       webview.executeJavaScript(INJECT_SCRIPT, true);
+      webview.executeJavaScript(INJECT_NEW_WINDOW_HANDLER, true);
+      // Register webContents with the CDP service for browser automation
+      const webContentsId = webview.getWebContentsId();
+      if (webContentsId) {
+        window.electron.ipcRenderer
+          .invoke("browser:registerWebContents", { viewId, webContentsId })
+          .catch(() => {});
+      }
     };
     const onStartLoading = () => {
       setIsLoading(true);
@@ -115,6 +138,9 @@ export default function BrowserView() {
 
     return () => {
       webview.removeEventListener("dom-ready", onDomReady);
+      window.electron.ipcRenderer
+        .invoke("browser:unregisterWebContents", { viewId })
+        .catch(() => {});
       webview.removeEventListener("did-start-loading", onStartLoading);
       webview.removeEventListener("did-stop-loading", onStopLoading);
       webview.removeEventListener("did-navigate", onNavigate as EventListener);
@@ -123,6 +149,12 @@ export default function BrowserView() {
       setEnableInspect(false);
     };
   }, [currentUrl, viewId, contentPanel]);
+
+  // Notify main process whenever this tab becomes active (for CDP active view tracking).
+  useEffect(() => {
+    if (!isActive) return;
+    void window.electron.ipcRenderer.invoke("browser:setActiveView", { viewId });
+  }, [isActive, viewId]);
 
   // Cleanup: detach devtools when component unmounts or devtools closed
   useEffect(() => {

@@ -28,6 +28,7 @@ interface BrowserPluginOptions {
 
 export default function browserPlugin(options?: BrowserPluginOptions): RendererPlugin {
   const enabledHosts = new Set([...DEFAULT_HOSTS, ...(options?.includeHosts ?? [])]);
+  let cleanupBrowserTabCommands: (() => void) | null = null;
 
   return {
     name: NAME,
@@ -58,6 +59,46 @@ export default function browserPlugin(options?: BrowserPluginOptions): RendererP
           },
         ],
       };
+    },
+
+    activate(ctx: PluginContext) {
+      cleanupBrowserTabCommands?.();
+      cleanupBrowserTabCommands =
+        window.api?.onBrowserTabCommand?.((cmd) => {
+          const contentPanel = ctx.app.workbench.contentPanel;
+
+          if (cmd.method === "tabNew") {
+            const payload =
+              cmd.args && typeof cmd.args === "object"
+                ? (cmd.args as { url?: unknown })
+                : undefined;
+            const url = typeof payload?.url === "string" ? payload.url : undefined;
+            const state = url ? { url } : undefined;
+            contentPanel.openView("browser", state ? { state } : undefined);
+            return;
+          }
+
+          if (
+            cmd.args &&
+            typeof cmd.args === "object" &&
+            "viewId" in cmd.args &&
+            typeof cmd.args.viewId === "string"
+          ) {
+            if (cmd.method === "tabSwitch") {
+              contentPanel.activateView(cmd.args.viewId);
+              return;
+            }
+
+            if (cmd.method === "tabClose") {
+              contentPanel.closeView(cmd.args.viewId);
+            }
+          }
+        }) ?? null;
+    },
+
+    deactivate() {
+      cleanupBrowserTabCommands?.();
+      cleanupBrowserTabCommands = null;
     },
 
     configContributions(ctx: PluginContext) {

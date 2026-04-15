@@ -32,6 +32,15 @@ const api = {
     ipcRenderer.on("window:fullscreen-change", handler);
     return () => ipcRenderer.removeListener("window:fullscreen-change", handler);
   },
+  // Tab command listener (for browser tab management from main process)
+  onBrowserTabCommand: (
+    callback: (cmd: { method: string; args: unknown }) => void,
+  ): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, cmd: unknown) =>
+      callback(cmd as { method: string; args: unknown });
+    ipcRenderer.on("nv:browser-tab-cmd", handler);
+    return () => ipcRenderer.removeListener("nv:browser-tab-cmd", handler);
+  },
 };
 
 if (process.contextIsolated) {
