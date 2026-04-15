@@ -141,6 +141,7 @@ export class SessionManager {
     private requestTracker: RequestTracker,
     private powerBlocker: PowerBlockerService,
     private getAgentContributions: () => Contributions["agents"] = () => [],
+    private getMcpServerContributions: () => Contributions["mcpServers"] = () => [],
   ) {}
 
   onLifecycle(listener: (event: SessionLifecycleEvent) => void): () => void {

@@ -9,6 +9,7 @@ import type { AppContext } from "./router";
 import { isMac } from "../shared/platform";
 import { MainApp } from "./app";
 import { ApplicationMenu } from "./core/menu";
+import { contribution } from "./core/plugin/contribution";
 import { PowerBlockerService } from "./core/power-blocker-service";
 import { shellEnvService } from "./core/shell-service";
 import { RequestTracker } from "./features/agent/request-tracker";
@@ -26,6 +27,7 @@ import { SkillsService } from "./features/skills/skills-service";
 import { StateStore } from "./features/state/state-store";
 import { UpdaterService } from "./features/updater/service";
 import browserPlugin from "./plugins/browser";
+import browserAutomationPlugin, { createFreshBrowserMcpServer } from "./plugins/browser-automation";
 import changesPlugin from "./plugins/changes";
 // import demoMcpLivePreviewPlugin from "./plugins/demo-mcp-live-preview";
 import editorPlugin from "./plugins/editor";
@@ -88,6 +90,18 @@ const sessionManager = new SessionManager(
   requestTracker,
   powerBlocker,
   () => mainApp.pluginManager.contributions.agents,
+  () => {
+    // Create a fresh McpServer instance per session — SDK server instances cannot be reused
+    // across sessions (McpServer closes after disconnect and refuses new connections).
+    const server = createFreshBrowserMcpServer();
+    if (!server) return mainApp.pluginManager.contributions.mcpServers;
+    return [
+      ...mainApp.pluginManager.contributions.mcpServers.filter(
+        (c) => !("browser-automation" in c.value),
+      ),
+      contribution(browserAutomationPlugin, { "browser-automation": server }),
+    ];
+  },
 );
 const stateStore = new StateStore();
 const llmService = new LlmService(configStore, shellEnvService);
@@ -99,6 +113,7 @@ const mainApp = new MainApp({
     terminalPlugin,
     editorPlugin,
     changesPlugin,
+    browserAutomationPlugin,
     browserPlugin,
     // demoMcpLivePreviewPlugin,
   ],
