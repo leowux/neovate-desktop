@@ -69,6 +69,46 @@ Run `bun ready` — it runs format check + typecheck + lint + tests. This is the
 - Zod 4 (not zod 3)
 - Icons: `lucide-react` (general use), `@hugeicons/core-free-icons` (sidebar/plugin icons)
 
+## Browser Automation Plugin
+
+Allows the AI Agent to control the built-in browser via MCP tools.
+
+**Architecture** — main-process CDP service with a thin renderer tab bridge:
+
+```
+┌─────────────────────────────────────┐
+│         AI Agent (main)             │  ← 发起工具调用
+│         MCP 工具层                   │
+└──────────────┬──────────────────────┘
+               │
+               │ direct method calls
+               ▼
+┌──────────────┴──────────────────────┐
+│   BrowserCdpService (main process)  │  ← CDP / ref cache / dialogs / network
+└──────────────┬──────────────────────┘
+               │ webContents.debugger
+               ▼
+┌──────────────▼──────────────────────┐
+│         浏览器视图层（React）          │  ← 实际页面渲染与事件上报
+└─────────────────────────────────────┘
+```
+
+**Key files:**
+
+- `src/main/plugins/browser-automation/mcp-server.ts` — AgentBrowser-style MCP tool surface
+- `src/main/plugins/browser-automation/browser-cdp-service.ts` — CDP-backed runtime for snapshots, refs, dialogs, frames, network, cookies, and storage
+- `src/main/plugins/browser-automation/index.ts` — MCP server factory + webContents registration IPC
+- `src/renderer/src/plugins/browser/browser-view.tsx` — browser tab UI; registers `webContentsId` with main and syncs active tab
+- `src/renderer/src/plugins/browser/index.tsx` — listens for tab open/switch/close commands from main
+
+**Critical constraints:**
+
+- MCP server instance must be created fresh per session (`createFreshBrowserMcpServer()`) — instances are closed after each session and cannot be reused
+- Public refs are `@eN`; tool inputs may accept bare `eN`, but tool output and docs should emit `@eN`
+- `browser_snapshot` is the only inspection primitive; full accessibility tree is the default, while `interactiveOnly: true` is the recommended action-planning mode
+- Never bind webview `src` to React state — React reconciliation will overwrite it and trigger unintended navigation; use `loadURL()` instead
+- Browser tab lifecycle still crosses the renderer boundary, but automation semantics live in main only
+
 ## Design Context
 
 ### Users
