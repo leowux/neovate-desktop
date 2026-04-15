@@ -150,7 +150,7 @@ export class FakeWebContents {
   }
 }
 
-export function createBrowserCdpHarness(
+export async function createBrowserCdpHarness(
   options: {
     initialUrl?: string;
     sendTabCommand?: (method: string, args: unknown, service: BrowserCdpService) => void;
@@ -164,16 +164,16 @@ export function createBrowserCdpHarness(
   serviceRef = service;
 
   const webContents = new FakeWebContents(options.initialUrl);
-  service.attachDebugger("view-1", webContents as never);
+  await service.attachDebugger("view-1", webContents as never);
 
   return {
     service,
     webContents,
     debuggerClient: webContents.debugger,
     sendTabCommand,
-    attachView(viewId: string, initialUrl: string = "about:blank") {
+    async attachView(viewId: string, initialUrl: string = "about:blank") {
       const wc = new FakeWebContents(initialUrl);
-      service.attachDebugger(viewId, wc as never);
+      await service.attachDebugger(viewId, wc as never);
       return wc;
     },
   };

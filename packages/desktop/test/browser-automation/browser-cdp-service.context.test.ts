@@ -17,8 +17,8 @@ describe("BrowserCdpService context, environment, and network state", () => {
     const sendTabCommand = vi.fn(
       (method: string, args: unknown, service: { attachDebugger: Function }) => {
         if (method === "tabNew") {
-          queueMicrotask(() => {
-            service.attachDebugger(
+          queueMicrotask(async () => {
+            await service.attachDebugger(
               "view-2",
               new FakeWebContents("https://second.example.com") as never,
             );
@@ -26,7 +26,7 @@ describe("BrowserCdpService context, environment, and network state", () => {
         }
       },
     );
-    const { service } = createBrowserCdpHarness({ sendTabCommand });
+    const { service } = await createBrowserCdpHarness({ sendTabCommand });
 
     const listBefore = await service.tab({ action: "list" });
     expect(listBefore).toContain("[0]");
@@ -45,7 +45,7 @@ describe("BrowserCdpService context, environment, and network state", () => {
   });
 
   it("switches frame contexts via main, ref, selector, and match", async () => {
-    const { service } = createBrowserCdpHarness();
+    const { service } = await createBrowserCdpHarness();
     spyOnPrivate(service, "getA11yTree").mockResolvedValue([...SAMPLE_AX_TREE]);
     spyOnPrivate(service, "getFrameIdFromRef").mockResolvedValue("payment-frame");
     spyOnPrivate(service, "resolveSelectorToBackendNodeId").mockResolvedValue(140);
@@ -65,7 +65,7 @@ describe("BrowserCdpService context, environment, and network state", () => {
   });
 
   it("tracks dialogs, including auto-accept for alerts", async () => {
-    const { service, debuggerClient } = createBrowserCdpHarness();
+    const { service, debuggerClient } = await createBrowserCdpHarness();
     const sendCommand = spyOnPrivate(service, "sendCommand").mockResolvedValue({});
 
     debuggerClient.emit("Page.javascriptDialogOpening", {
@@ -99,7 +99,7 @@ describe("BrowserCdpService context, environment, and network state", () => {
   });
 
   it("updates viewport, media, cookies, and localStorage", async () => {
-    const { service } = createBrowserCdpHarness({ initialUrl: "https://shop.example.com" });
+    const { service } = await createBrowserCdpHarness({ initialUrl: "https://shop.example.com" });
     const sendCommand = spyOnPrivate(service, "sendCommand").mockImplementation(async (method) => {
       if (method === "Network.getCookies") {
         return { cookies: [{ name: "sid", value: "123" }] };
@@ -135,7 +135,7 @@ describe("BrowserCdpService context, environment, and network state", () => {
   });
 
   it("records network requests and applies route rules", async () => {
-    const { service, debuggerClient } = createBrowserCdpHarness();
+    const { service, debuggerClient } = await createBrowserCdpHarness();
     const sendCommand = spyOnPrivate(service, "sendCommand").mockResolvedValue({});
 
     debuggerClient.emit("Network.requestWillBeSent", {

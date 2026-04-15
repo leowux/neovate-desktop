@@ -14,7 +14,7 @@ describe("BrowserCdpService snapshot and find", () => {
   });
 
   it("returns the full accessibility tree by default", async () => {
-    const { service } = createBrowserCdpHarness();
+    const { service } = await createBrowserCdpHarness();
     spyOnPrivate(service, "getA11yTree").mockResolvedValue([...SAMPLE_AX_TREE]);
 
     const snapshot = await service.snapshot();
@@ -29,7 +29,7 @@ describe("BrowserCdpService snapshot and find", () => {
   });
 
   it("returns the compact interactive-only view", async () => {
-    const { service } = createBrowserCdpHarness();
+    const { service } = await createBrowserCdpHarness();
     spyOnPrivate(service, "getA11yTree").mockResolvedValue([...SAMPLE_AX_TREE]);
 
     const snapshot = await service.snapshot({ interactiveOnly: true, compact: true });
@@ -45,7 +45,7 @@ describe("BrowserCdpService snapshot and find", () => {
   });
 
   it("supports scoped snapshots, depth limiting, and focused markers", async () => {
-    const { service } = createBrowserCdpHarness();
+    const { service } = await createBrowserCdpHarness();
     spyOnPrivate(service, "getA11yTree").mockResolvedValue([...SAMPLE_AX_TREE]);
 
     await service.snapshot();
@@ -62,7 +62,7 @@ describe("BrowserCdpService snapshot and find", () => {
   });
 
   it("rejects mutually exclusive scopeRef and scopeSelector", async () => {
-    const { service } = createBrowserCdpHarness();
+    const { service } = await createBrowserCdpHarness();
     spyOnPrivate(service, "getA11yTree").mockResolvedValue([...SAMPLE_AX_TREE]);
 
     await service.snapshot();
@@ -73,7 +73,7 @@ describe("BrowserCdpService snapshot and find", () => {
   });
 
   it("scopes snapshots to the active frame owner when a frame is selected", async () => {
-    const { service } = createBrowserCdpHarness();
+    const { service } = await createBrowserCdpHarness();
     spyOnPrivate(service, "getA11yTree").mockResolvedValue([...SAMPLE_AX_TREE]);
     spyOnPrivate(service, "getFrameTree").mockResolvedValue({
       frame: { id: "main-frame", url: "https://shop.example.com", name: "main" },
@@ -99,7 +99,7 @@ describe("BrowserCdpService snapshot and find", () => {
   });
 
   it("returns refs and previews for find results", async () => {
-    const { service } = createBrowserCdpHarness();
+    const { service } = await createBrowserCdpHarness();
     spyOnPrivate(service, "getA11yTree").mockResolvedValue([...SAMPLE_AX_TREE]);
     spyOnPrivate(service, "findBackendNodeIds").mockResolvedValue([210, 220]);
 
@@ -112,7 +112,7 @@ describe("BrowserCdpService snapshot and find", () => {
   });
 
   it("returns a stable empty message when find misses", async () => {
-    const { service } = createBrowserCdpHarness();
+    const { service } = await createBrowserCdpHarness();
     spyOnPrivate(service, "getA11yTree").mockResolvedValue([...SAMPLE_AX_TREE]);
     spyOnPrivate(service, "findBackendNodeIds").mockResolvedValue([]);
 

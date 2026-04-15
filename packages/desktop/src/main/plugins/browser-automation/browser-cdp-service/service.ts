@@ -71,7 +71,7 @@ export class BrowserCdpService {
     this.sendTabCommand = sendTabCommand;
   }
 
-  attachDebugger(viewId: string, webContents: WebContents): void {
+  async attachDebugger(viewId: string, webContents: WebContents): Promise<void> {
     if (this.views.has(viewId)) {
       return;
     }
@@ -105,17 +105,24 @@ export class BrowserCdpService {
 
     dbg.on("message", session.onDebuggerMessage);
 
-    dbg.sendCommand("Runtime.enable").catch((error) => log("Runtime.enable error: %s", error));
-    dbg.sendCommand("Page.enable").catch((error) => log("Page.enable error: %s", error));
-    dbg
-      .sendCommand("Accessibility.enable")
-      .catch((error) => log("Accessibility.enable error: %s", error));
-    dbg.sendCommand("DOM.enable").catch((error) => log("DOM.enable error: %s", error));
-    dbg.sendCommand("Network.enable").catch((error) => log("Network.enable error: %s", error));
-    dbg
-      .sendCommand("Fetch.enable", { patterns: [{ urlPattern: "*" }] })
-      .catch((error) => log("Fetch.enable error: %s", error));
-    dbg.sendCommand("Overlay.enable").catch((error) => log("Overlay.enable error: %s", error));
+    // Await CDP domain enables so that events like Page.loadEventFired are
+    // guaranteed to be dispatched before any navigation triggered by tools
+    // (e.g. browser_open → loadURL).  Without this, Page.enable may still be
+    // in-flight when loadURL fires, causing loadEventFired to be silently
+    // dropped and waitForLoadEvent to time out.
+    await Promise.all([
+      dbg.sendCommand("Runtime.enable").catch((error) => log("Runtime.enable error: %s", error)),
+      dbg.sendCommand("Page.enable").catch((error) => log("Page.enable error: %s", error)),
+      dbg
+        .sendCommand("Accessibility.enable")
+        .catch((error) => log("Accessibility.enable error: %s", error)),
+      dbg.sendCommand("DOM.enable").catch((error) => log("DOM.enable error: %s", error)),
+      dbg.sendCommand("Network.enable").catch((error) => log("Network.enable error: %s", error)),
+      dbg
+        .sendCommand("Fetch.enable", { patterns: [{ urlPattern: "*" }] })
+        .catch((error) => log("Fetch.enable error: %s", error)),
+      dbg.sendCommand("Overlay.enable").catch((error) => log("Overlay.enable error: %s", error)),
+    ]);
 
     webContents.setWindowOpenHandler(({ url }) => {
       webContents.loadURL(url).catch((error) => log("window open redirect failed: %s", error));

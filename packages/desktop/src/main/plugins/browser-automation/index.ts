@@ -42,13 +42,13 @@ const browserAutomationPlugin: MainPlugin = {
   activate(ctx: PluginContext) {
     ipcMain.handle(
       "browser:registerWebContents",
-      (
+      async (
         _event: IpcMainInvokeEvent,
         { viewId, webContentsId }: { viewId: string; webContentsId: number },
       ) => {
         const wc = webContents.fromId(webContentsId);
         if (wc && cdpService) {
-          cdpService.attachDebugger(viewId, wc);
+          await cdpService.attachDebugger(viewId, wc);
           log("registered webContents viewId=%s wcId=%d", viewId, webContentsId);
         }
       },

@@ -15,7 +15,7 @@ describe("BrowserCdpService keyboard and mouse interactions", () => {
   });
 
   it("double-clicks a ref with clickCount=2 on second dispatch", async () => {
-    const { service, debuggerClient } = createBrowserCdpHarness();
+    const { service, debuggerClient } = await createBrowserCdpHarness();
     spyOnPrivate(service, "getA11yTree").mockResolvedValue([...SAMPLE_AX_TREE]);
     spyOnPrivate(service, "resolveRefPosition").mockResolvedValue({ x: 60, y: 40 });
     spyOnPrivate(service, "waitForPotentialNavigation").mockResolvedValue(undefined);
@@ -36,7 +36,7 @@ describe("BrowserCdpService keyboard and mouse interactions", () => {
   });
 
   it("focuses a ref via callOnRefNode", async () => {
-    const { service, debuggerClient } = createBrowserCdpHarness();
+    const { service, debuggerClient } = await createBrowserCdpHarness();
     vi.spyOn((service as any).refs, "getBackendNodeIdForRef").mockReturnValue(130);
     spyOnPrivate(service, "resolveObjectIdForBackendNode").mockResolvedValue("node-130");
     debuggerClient.setHandler("Runtime.callFunctionOn", () => ({
@@ -55,7 +55,7 @@ describe("BrowserCdpService keyboard and mouse interactions", () => {
   });
 
   it("presses a key combo via Input.dispatchKeyEvent", async () => {
-    const { service, debuggerClient } = createBrowserCdpHarness();
+    const { service, debuggerClient } = await createBrowserCdpHarness();
     spyOnPrivate(service, "grantWebviewFocus").mockReturnValue(undefined);
 
     await expect(service.press("Enter")).resolves.toBe("Pressed Enter");
@@ -69,7 +69,7 @@ describe("BrowserCdpService keyboard and mouse interactions", () => {
   });
 
   it("presses a modifier combo (e.g. Control+a)", async () => {
-    const { service, debuggerClient } = createBrowserCdpHarness();
+    const { service, debuggerClient } = await createBrowserCdpHarness();
     spyOnPrivate(service, "grantWebviewFocus").mockReturnValue(undefined);
 
     await expect(service.press("Control+a")).resolves.toBe("Pressed Control+a");
@@ -84,7 +84,7 @@ describe("BrowserCdpService keyboard and mouse interactions", () => {
   });
 
   it("holds and releases a key with keyDown/keyUp", async () => {
-    const { service, debuggerClient } = createBrowserCdpHarness();
+    const { service, debuggerClient } = await createBrowserCdpHarness();
     spyOnPrivate(service, "grantWebviewFocus").mockReturnValue(undefined);
 
     await expect(service.keyDown("Shift")).resolves.toBe("Held Shift");
@@ -106,7 +106,7 @@ describe("BrowserCdpService keyboard and mouse interactions", () => {
   });
 
   it("hovers over a ref via Input.dispatchMouseEvent mouseMoved", async () => {
-    const { service, debuggerClient } = createBrowserCdpHarness();
+    const { service, debuggerClient } = await createBrowserCdpHarness();
     spyOnPrivate(service, "getA11yTree").mockResolvedValue([...SAMPLE_AX_TREE]);
     spyOnPrivate(service, "resolveRefPosition").mockResolvedValue({ x: 100, y: 200 });
 
@@ -126,7 +126,7 @@ describe("BrowserCdpService keyboard and mouse interactions", () => {
   });
 
   it("checks a checkbox by clicking when unchecked", async () => {
-    const { service } = createBrowserCdpHarness();
+    const { service } = await createBrowserCdpHarness();
     vi.spyOn((service as any).refs, "getBackendNodeIdForRef").mockReturnValue(130);
     spyOnPrivate(service, "resolveObjectIdForBackendNode").mockResolvedValue("node-130");
     spyOnPrivate(service, "callOnRefNode").mockResolvedValue(false); // currently unchecked
@@ -137,7 +137,7 @@ describe("BrowserCdpService keyboard and mouse interactions", () => {
   });
 
   it("unchecks a checkbox by clicking when checked", async () => {
-    const { service } = createBrowserCdpHarness();
+    const { service } = await createBrowserCdpHarness();
     vi.spyOn((service as any).refs, "getBackendNodeIdForRef").mockReturnValue(130);
     spyOnPrivate(service, "resolveObjectIdForBackendNode").mockResolvedValue("node-130");
     spyOnPrivate(service, "callOnRefNode").mockResolvedValue(true); // currently checked
@@ -148,7 +148,7 @@ describe("BrowserCdpService keyboard and mouse interactions", () => {
   });
 
   it("skips click when check state already matches", async () => {
-    const { service } = createBrowserCdpHarness();
+    const { service } = await createBrowserCdpHarness();
     vi.spyOn((service as any).refs, "getBackendNodeIdForRef").mockReturnValue(130);
     spyOnPrivate(service, "resolveObjectIdForBackendNode").mockResolvedValue("node-130");
     spyOnPrivate(service, "callOnRefNode").mockResolvedValue(true); // already checked

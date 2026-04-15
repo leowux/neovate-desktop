@@ -19,7 +19,7 @@ describe("BrowserCdpService actions and diagnostics", () => {
   });
 
   it("opens, goes back, goes forward, and reloads pages", async () => {
-    const { service, webContents } = createBrowserCdpHarness({
+    const { service, webContents } = await createBrowserCdpHarness({
       initialUrl: "https://initial.example.com",
     });
     const invalidateRefs = vi.spyOn((service as any).refs, "invalidate");
@@ -36,7 +36,7 @@ describe("BrowserCdpService actions and diagnostics", () => {
   });
 
   it("clicks refs and can open links in a new tab", async () => {
-    const { service, debuggerClient } = createBrowserCdpHarness();
+    const { service, debuggerClient } = await createBrowserCdpHarness();
     spyOnPrivate(service, "getA11yTree").mockResolvedValue([...SAMPLE_AX_TREE]);
     spyOnPrivate(service, "resolveRefPosition").mockResolvedValue({ x: 60, y: 40 });
     spyOnPrivate(service, "waitForPotentialNavigation").mockResolvedValue(undefined);
@@ -57,7 +57,7 @@ describe("BrowserCdpService actions and diagnostics", () => {
   });
 
   it("fills and types via in-page editing without native keyboard injection", async () => {
-    const { service, debuggerClient } = createBrowserCdpHarness();
+    const { service, debuggerClient } = await createBrowserCdpHarness();
     vi.spyOn((service as any).refs, "getBackendNodeIdForRef").mockReturnValue(120);
     spyOnPrivate(service, "resolveObjectIdForBackendNode").mockResolvedValue("node-120");
 
@@ -88,7 +88,7 @@ describe("BrowserCdpService actions and diagnostics", () => {
   });
 
   it("rejects fill when the target is not actually editable", async () => {
-    const { service, debuggerClient } = createBrowserCdpHarness();
+    const { service, debuggerClient } = await createBrowserCdpHarness();
     vi.spyOn((service as any).refs, "getBackendNodeIdForRef").mockReturnValue(999);
     spyOnPrivate(service, "resolveObjectIdForBackendNode").mockResolvedValue("node-999");
 
@@ -100,7 +100,7 @@ describe("BrowserCdpService actions and diagnostics", () => {
   });
 
   it("supports select, scroll, drag, upload, and scroll-into-view", async () => {
-    const { service, debuggerClient } = createBrowserCdpHarness();
+    const { service, debuggerClient } = await createBrowserCdpHarness();
     spyOnPrivate(service, "getA11yTree").mockResolvedValue([...SAMPLE_AX_TREE]);
     spyOnPrivate(service, "resolveObjectIdForBackendNode").mockResolvedValue("node-130");
     spyOnPrivate(service, "resolveRefPosition").mockImplementation(async (ref) => {
@@ -133,7 +133,7 @@ describe("BrowserCdpService actions and diagnostics", () => {
   });
 
   it("reads element and page state via browser_get and browser_is", async () => {
-    const { service, webContents } = createBrowserCdpHarness({
+    const { service, webContents } = await createBrowserCdpHarness({
       initialUrl: "https://shop.example.com/checkout",
     });
     spyOnPrivate(service, "getA11yTree").mockResolvedValue([...SAMPLE_AX_TREE]);
@@ -190,7 +190,7 @@ describe("BrowserCdpService actions and diagnostics", () => {
   });
 
   it("waits for milliseconds, url matches, load states, and JS predicates", async () => {
-    const { service } = createBrowserCdpHarness({
+    const { service } = await createBrowserCdpHarness({
       initialUrl: "https://shop.example.com/dashboard",
     });
     await service.open("https://shop.example.com/dashboard");
@@ -228,7 +228,7 @@ describe("BrowserCdpService actions and diagnostics", () => {
   });
 
   it("buffers console and page errors, highlights refs, evaluates code, and captures screenshots", async () => {
-    const { service, webContents, debuggerClient } = createBrowserCdpHarness();
+    const { service, webContents, debuggerClient } = await createBrowserCdpHarness();
     spyOnPrivate(service, "getA11yTree").mockResolvedValue([...SAMPLE_AX_TREE]);
     vi.spyOn((service as any).refs, "getBackendNodeIdForRef").mockReturnValue(130);
     spyOnPrivate(service, "evaluateInCurrentFrame").mockResolvedValue({ ok: true });

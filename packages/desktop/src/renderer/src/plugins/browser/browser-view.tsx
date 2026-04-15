@@ -297,7 +297,14 @@ export default function BrowserView() {
             />
           </>
         ) : (
-          <BlankPage />
+          // Always render webview (with about:blank) so that CDP debugger can attach
+          // even before a URL is navigated to. BlankPage is shown as an overlay.
+          <div className="relative h-full w-full">
+            <webview ref={webviewRef} src="about:blank" style={{ width: "100%", height: "100%" }} />
+            <div className="absolute inset-0">
+              <BlankPage />
+            </div>
+          </div>
         )}
       </div>
     </div>
